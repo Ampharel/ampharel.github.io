@@ -16,16 +16,26 @@
     <canvas id="woolChart"></canvas>
   </div>
   <script>
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/1m-ptzpS9Ff_BZ2M7SmgLfrzyxmTpOS0IDxNGCKpgieU/export?format=csv&gid=985203263';
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1m-ptzpS9Ff_BZ2M7SmgLfrzyxmTpOS0IDxNGCKpgieU/export?format=csv&sheet=Tradepost%20Data%20Dump';
 
     fetch(csvUrl)
       .then(resp => resp.text())
       .then(text => {
         const parsed = Papa.parse(text.trim());
         const rows = parsed.data;
-        const header = rows[1];
+
+        // Determine if the first row is a summary row or the header
+        const headerRowIndex = rows[0][0].toLowerCase() === 'product' ? 0 : 1;
+        const header = rows[headerRowIndex];
+
+        // Build a map from column title to index so layout changes are handled
+        const col = {};
+        header.forEach((h, idx) => {
+          col[h.trim().toLowerCase()] = idx;
+        });
+
         let woolRow = null;
-        for (let i = 2; i < rows.length; i++) {
+        for (let i = headerRowIndex + 1; i < rows.length; i++) {
           if (rows[i][0] && rows[i][0].toLowerCase() === 'wool') {
             woolRow = rows[i];
             break;
@@ -44,12 +54,12 @@
           'Max in last 24h'
         ];
         const values = [
-          parseFloat(woolRow[1]),
-          parseFloat(woolRow[2]),
-          parseFloat(woolRow[3]),
-          parseFloat(woolRow[6]),
-          parseFloat(woolRow[7]),
-          parseFloat(woolRow[8])
+          parseFloat(woolRow[col['tradepost value']]),
+          parseFloat(woolRow[col['minimal sell price']]),
+          parseFloat(woolRow[col['planting cost per 1']]),
+          parseFloat(woolRow[col['average in last 24h']]),
+          parseFloat(woolRow[col['min in last 24h']]),
+          parseFloat(woolRow[col['max in last 24h']])
         ];
 
         new Chart(document.getElementById('woolChart'), {
