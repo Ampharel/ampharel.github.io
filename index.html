@@ -45,29 +45,27 @@
           document.getElementById('chart-container').textContent = 'Wool data not found.';
           return;
         }
-        const labels = [
-          'Tradepost value',
-          'Minimal Sell price',
-          'Planting Cost Per 1',
-          'Average in last 24h',
-          'Min in last 24h',
-          'Max in last 24h'
-        ];
-        const values = [
-          parseFloat(woolRow[col['tradepost value']]),
-          parseFloat(woolRow[col['minimal sell price']]),
-          parseFloat(woolRow[col['planting cost per 1']]),
-          parseFloat(woolRow[col['average in last 24h']]),
-          parseFloat(woolRow[col['min in last 24h']]),
-          parseFloat(woolRow[col['max in last 24h']])
-        ];
+        // Build labels and values dynamically from numeric columns
+        const labels = [];
+        const values = [];
+        header.forEach((h, idx) => {
+          if (idx === col['product']) return; // skip the product name
+          let cell = woolRow[idx];
+          if (!cell) return;
+          cell = String(cell).replace('%', '').replace(/,/g, '');
+          const num = parseFloat(cell);
+          if (!Number.isNaN(num)) {
+            labels.push(h.trim());
+            values.push(num);
+          }
+        });
 
         new Chart(document.getElementById('woolChart'), {
           type: 'bar',
           data: {
             labels: labels,
             datasets: [{
-              label: 'Price (silver)',
+              label: 'Value',
               data: values,
               backgroundColor: 'rgba(75, 192, 192, 0.6)',
               borderColor: 'rgba(75, 192, 192, 1)',
@@ -76,8 +74,18 @@
           },
           options: {
             scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Data'
+                }
+              },
               y: {
-                beginAtZero: true
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Value'
+                }
               }
             }
           }
