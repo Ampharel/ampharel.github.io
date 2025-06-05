@@ -1,1 +1,82 @@
-<h3>Hello World!</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wool Prices</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    #chart-container { width: 80%; max-width: 600px; margin: auto; }
+  </style>
+</head>
+<body>
+  <h2>Wool Prices from Tradepost Data Dump</h2>
+  <div id="chart-container">
+    <canvas id="woolChart"></canvas>
+  </div>
+  <script>
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1m-ptzpS9Ff_BZ2M7SmgLfrzyxmTpOS0IDxNGCKpgieU/export?format=csv&gid=985203263';
+
+    fetch(csvUrl)
+      .then(resp => resp.text())
+      .then(text => {
+        const parsed = Papa.parse(text.trim());
+        const rows = parsed.data;
+        const header = rows[1];
+        let woolRow = null;
+        for (let i = 2; i < rows.length; i++) {
+          if (rows[i][0] && rows[i][0].toLowerCase() === 'wool') {
+            woolRow = rows[i];
+            break;
+          }
+        }
+        if (!woolRow) {
+          document.getElementById('chart-container').textContent = 'Wool data not found.';
+          return;
+        }
+        const labels = [
+          'Tradepost value',
+          'Minimal Sell price',
+          'Planting Cost Per 1',
+          'Average in last 24h',
+          'Min in last 24h',
+          'Max in last 24h'
+        ];
+        const values = [
+          parseFloat(woolRow[1]),
+          parseFloat(woolRow[2]),
+          parseFloat(woolRow[3]),
+          parseFloat(woolRow[6]),
+          parseFloat(woolRow[7]),
+          parseFloat(woolRow[8])
+        ];
+
+        new Chart(document.getElementById('woolChart'), {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Price (silver)',
+              data: values,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      })
+      .catch(err => {
+        document.getElementById('chart-container').textContent = 'Failed to load data.';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
