@@ -2,21 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sum Puzzle</title>
 <style>
-body{font-family:Arial,Helvetica,sans-serif;margin:20px;}
+body{font-family:Arial,Helvetica,sans-serif;margin:20px;font-size:18px;}
 #game,#result{display:none;}
 table{border-collapse:collapse;}
-td,th{border:1px solid #555;width:30px;height:30px;text-align:center;}
+td,th{border:1px solid #555;width:40px;height:40px;text-align:center;font-size:1.2em;}
 td.sum{background:#f0f0f0;font-weight:bold;}
 td.mark-correct{background:#8f8;}
 td.mark-wrong{background:#f88;}
-.mini td,.mini th{width:20px;height:20px;font-size:12px;}
+.mini td,.mini th{width:30px;height:30px;font-size:14px;}
+.help{display:inline-block;position:relative;margin-left:5px;background:#eee;border-radius:50%;width:24px;height:24px;line-height:24px;text-align:center;font-weight:bold;cursor:pointer;}
+.help .tooltip{visibility:hidden;opacity:0;transition:opacity 0.2s;position:absolute;z-index:1;bottom:125%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px;border-radius:4px;width:220px;}
+.help:hover .tooltip{visibility:visible;opacity:1;}
+@media (max-width:600px){
+ td,th{width:32px;height:32px;font-size:1em;}
+ .mini td,.mini th{width:24px;height:24px;font-size:12px;}
+}
 </style>
 </head>
 <body>
 <div id="start">
-<h1>Sum Puzzle</h1>
+<h1>Sum Puzzle <span class="help">?<span class="tooltip">Mark the digits that contribute to the sums on the right and bottom. Toggle a cell until all correct numbers are found.</span></span></h1>
 <label>X size:<input id="widthInput" type="number" value="5" min="1"></label><br>
 <label>Y size:<input id="heightInput" type="number" value="5" min="1"></label><br>
 <label>Difficulty:
