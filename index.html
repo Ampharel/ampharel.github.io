@@ -62,7 +62,7 @@ let numbers=[];let solution=[];let rowSums=new Array(height).fill(0);let colSums
 for(let y=0;y<height;y++){
  numbers[y]=[];solution[y]=[];
  for(let x=0;x<width;x++){
-  let num=Math.floor(rng.nextFloat()*10);
+  let num=Math.floor(rng.nextFloat()*9)+1;
   numbers[y][x]=num;
   let corr=rng.nextFloat()<probs[difficulty];
   solution[y][x]=corr;
