@@ -15,12 +15,11 @@ td.sum{background:#f0f0f0;font-weight:bold;}
 td.mark-correct{background:#8f8;}
 td.mark-wrong{background:#f88;}
 .mini td,.mini th{width:30px;height:30px;font-size:14px;}
-#titleRow{display:flex;gap:10px;align-items:center;justify-content:center;}
+#titleRow{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;}
 #titleRow .description{margin:0;}
 @media (max-width:600px){
  td,th{width:32px;height:32px;font-size:1em;}
  .mini td,.mini th{width:24px;height:24px;font-size:12px;}
-#titleRow{flex-direction:column;}
 }
 </style>
 </head>
@@ -73,13 +72,26 @@ const rng=new LCG(seed);
 const probs={easy:0.3,medium:0.5,hard:0.7};
 let numbers=[];let solution=[];let rowSums=new Array(height).fill(0);let colSums=new Array(width).fill(0);
 for(let y=0;y<height;y++){
- numbers[y]=[];solution[y]=[];
+ numbers[y]=[];
+ solution[y]=[];
+ let mandatoryX=Math.floor(rng.nextFloat()*width);
  for(let x=0;x<width;x++){
   let num=Math.floor(rng.nextFloat()*9)+1;
   numbers[y][x]=num;
   let corr=rng.nextFloat()<probs[difficulty];
+  if(x===mandatoryX) corr=true;
   solution[y][x]=corr;
   if(corr){rowSums[y]+=num;colSums[x]+=num;}
+ }
+}
+for(let x=0;x<width;x++){
+ if(colSums[x]===0){
+  let y=Math.floor(rng.nextFloat()*height);
+  if(!solution[y][x]){
+   solution[y][x]=true;
+   rowSums[y]+=numbers[y][x];
+  }
+  colSums[x]+=numbers[y][x];
  }
 }
  puzzle={width,height,numbers,solution,rowSums,colSums,seed,difficulty};
