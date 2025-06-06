@@ -1,1 +1,175 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sum Puzzle</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:20px;}
+#game,#result{display:none;}
+table{border-collapse:collapse;}
+td,th{border:1px solid #555;width:30px;height:30px;text-align:center;}
+td.sum{background:#f0f0f0;font-weight:bold;}
+td.mark-correct{background:#8f8;}
+td.mark-wrong{background:#f88;}
+.mini td,.mini th{width:20px;height:20px;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="start">
+<h1>Sum Puzzle</h1>
+<label>X size:<input id="widthInput" type="number" value="5" min="1"></label><br>
+<label>Y size:<input id="heightInput" type="number" value="5" min="1"></label><br>
+<label>Difficulty:
+<select id="difficultyInput">
+<option value="easy">Easy</option>
+<option value="medium">Medium</option>
+<option value="hard">Hard</option>
+</select>
+</label><br>
+<label>Seed:<input id="seedInput" type="text"></label><br>
+<button id="startBtn">Start Puzzle</button>
+</div>
+<div id="game">
+<div>Time: <span id="timer">0s</span></div>
+<div id="board"></div>
+</div>
+<div id="result">
+<h2>Puzzle Completed!</h2>
+<p id="finalTime"></p>
+<p id="settingsInfo"></p>
+<h3>Initial</h3>
+<div id="initialBoard"></div>
+<h3>Completed</h3>
+<div id="completedBoard"></div>
+<button id="playAgain">Play Again</button>
+</div>
+<script>
+function LCG(seed){this.seed=seed%2147483647;if(this.seed<=0)this.seed+=2147483646;}
+LCG.prototype.next=function(){return this.seed=this.seed*16807%2147483647;};
+LCG.prototype.nextFloat=function(){return (this.next()-1)/2147483646;};
+let puzzle=null;
+let timerInterval=null;
+function startGame(){
+const width=parseInt(document.getElementById('widthInput').value);
+const height=parseInt(document.getElementById('heightInput').value);
+const difficulty=document.getElementById('difficultyInput').value;
+const seedStr=document.getElementById('seedInput').value;
+let seed=0;
+if(seedStr){for(let i=0;i<seedStr.length;i++)seed+=seedStr.charCodeAt(i);}else{seed=Math.floor(Math.random()*1000000);}
+const rng=new LCG(seed);
+const probs={easy:0.3,medium:0.5,hard:0.7};
+let numbers=[];let solution=[];let rowSums=new Array(height).fill(0);let colSums=new Array(width).fill(0);
+for(let y=0;y<height;y++){
+ numbers[y]=[];solution[y]=[];
+ for(let x=0;x<width;x++){
+  let num=Math.floor(rng.nextFloat()*10);
+  numbers[y][x]=num;
+  let corr=rng.nextFloat()<probs[difficulty];
+  solution[y][x]=corr;
+  if(corr){rowSums[y]+=num;colSums[x]+=num;}
+ }
+}
+ puzzle={width,height,numbers,solution,rowSums,colSums,seed,difficulty};
+ renderBoard();
+ document.getElementById('start').style.display='none';
+ document.getElementById('game').style.display='block';
+ startTimer();
+}
+function renderBoard(){
+const boardDiv=document.getElementById('board');
+boardDiv.innerHTML='';
+const table=document.createElement('table');
+for(let y=0;y<=puzzle.height;y++){
+ const tr=document.createElement('tr');
+ for(let x=0;x<=puzzle.width;x++){
+  const td=document.createElement('td');
+  if(x===puzzle.width && y===puzzle.height){td.className='sum';td.textContent='';}
+  else if(y===puzzle.height){td.className='sum';td.textContent=puzzle.colSums[x];}
+  else if(x===puzzle.width){td.className='sum';td.textContent=puzzle.rowSums[y];}
+  else{
+    td.textContent=puzzle.numbers[y][x];
+    td.dataset.x=x;td.dataset.y=y;
+    td.addEventListener('click',toggleCell);
+  }
+  tr.appendChild(td);
+ }
+ table.appendChild(tr);
+}
+boardDiv.appendChild(table);
+}
+let marks=[];
+function toggleCell(e){
+const td=e.target;
+const x=parseInt(td.dataset.x);const y=parseInt(td.dataset.y);
+if(!marks[y])marks[y]=[];
+let state=marks[y][x];
+if(state===undefined)state=null;
+if(state===null){state=true;td.classList.add('mark-correct');}
+else if(state===true){state=false;td.classList.remove('mark-correct');td.classList.add('mark-wrong');}
+else{state=null;td.classList.remove('mark-wrong');}
+marks[y][x]=state;
+checkSolved();
+}
+function startTimer(){
+const timerSpan=document.getElementById('timer');
+const start=Date.now();
+clearInterval(timerInterval);
+ timerInterval=setInterval(()=>{
+   const sec=Math.floor((Date.now()-start)/1000);
+   timerSpan.textContent=sec+'s';
+ },1000);
+}
+function stopTimer(){
+ if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function checkSolved(){
+for(let y=0;y<puzzle.height;y++){
+ for(let x=0;x<puzzle.width;x++){
+  if(!marks[y]||marks[y][x]===null)return; // not all marked
+  if((marks[y][x]===true)!==puzzle.solution[y][x])return; // mismatch
+ }
+}
+ stopTimer();
+ showResult();
+}
+function createMiniBoard(solution){
+const table=document.createElement('table');
+ table.className='mini';
+ for(let y=0;y<=puzzle.height;y++){
+  const tr=document.createElement('tr');
+  for(let x=0;x<=puzzle.width;x++){
+   const td=document.createElement('td');
+   if(x===puzzle.width && y===puzzle.height){td.className='sum';}
+   else if(y===puzzle.height){td.className='sum';td.textContent=puzzle.colSums[x];}
+   else if(x===puzzle.width){td.className='sum';td.textContent=puzzle.rowSums[y];}
+   else{
+     td.textContent=puzzle.numbers[y][x];
+     if(solution && puzzle.solution[y][x])td.className='mark-correct';
+   }
+   tr.appendChild(td);
+  }
+  table.appendChild(tr);
+ }
+ return table;
+}
+function showResult(){
+document.getElementById('game').style.display='none';
+const finalTime=document.getElementById('timer').textContent;
+document.getElementById('finalTime').textContent='Time: '+finalTime;
+document.getElementById('settingsInfo').textContent='Size: '+puzzle.width+'x'+puzzle.height+', difficulty: '+puzzle.difficulty+', seed: '+puzzle.seed;
+const initDiv=document.getElementById('initialBoard');
+const compDiv=document.getElementById('completedBoard');
+initDiv.innerHTML='';compDiv.innerHTML='';
+initDiv.appendChild(createMiniBoard(false));
+compDiv.appendChild(createMiniBoard(true));
+document.getElementById('result').style.display='block';
+}
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('playAgain').addEventListener('click',()=>{
+ document.getElementById('result').style.display='none';
+ document.getElementById('start').style.display='block';
+ marks=[];
+});
+</script>
+</body>
+</html>
