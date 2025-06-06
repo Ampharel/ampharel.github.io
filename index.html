@@ -83,12 +83,12 @@ for(let y=0;y<=puzzle.height;y++){
  const tr=document.createElement('tr');
  for(let x=0;x<=puzzle.width;x++){
   const td=document.createElement('td');
-  if(x===puzzle.width && y===puzzle.height){td.className='sum';td.textContent='';}
-  else if(y===puzzle.height){td.className='sum';td.textContent=puzzle.colSums[x];}
-  else if(x===puzzle.width){td.className='sum';td.textContent=puzzle.rowSums[y];}
+  if(x===0 && y===0){td.className='sum';td.textContent='';}
+  else if(y===0){td.className='sum';td.textContent=puzzle.colSums[x-1];}
+  else if(x===0){td.className='sum';td.textContent=puzzle.rowSums[y-1];}
   else{
-    td.textContent=puzzle.numbers[y][x];
-    td.dataset.x=x;td.dataset.y=y;
+    td.textContent=puzzle.numbers[y-1][x-1];
+    td.dataset.x=x-1;td.dataset.y=y-1;
     td.addEventListener('click',toggleCell);
   }
   tr.appendChild(td);
@@ -139,12 +139,12 @@ const table=document.createElement('table');
   const tr=document.createElement('tr');
   for(let x=0;x<=puzzle.width;x++){
    const td=document.createElement('td');
-   if(x===puzzle.width && y===puzzle.height){td.className='sum';}
-   else if(y===puzzle.height){td.className='sum';td.textContent=puzzle.colSums[x];}
-   else if(x===puzzle.width){td.className='sum';td.textContent=puzzle.rowSums[y];}
+   if(x===0 && y===0){td.className='sum';}
+   else if(y===0){td.className='sum';td.textContent=puzzle.colSums[x-1];}
+   else if(x===0){td.className='sum';td.textContent=puzzle.rowSums[y-1];}
    else{
-     td.textContent=puzzle.numbers[y][x];
-     if(solution && puzzle.solution[y][x])td.className='mark-correct';
+     td.textContent=puzzle.numbers[y-1][x-1];
+     if(solution && puzzle.solution[y-1][x-1])td.className='mark-correct';
    }
    tr.appendChild(td);
   }
