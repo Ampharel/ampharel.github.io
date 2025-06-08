@@ -61,6 +61,64 @@ LCG.prototype.next=function(){return this.seed=this.seed*16807%2147483647;};
 LCG.prototype.nextFloat=function(){return (this.next()-1)/2147483646;};
 let puzzle=null;
 let timerInterval=null;
+function generatePuzzle(width,height,difficulty,rng){
+ const probs={easy:0.3,medium:0.5,hard:0.7};
+ let numbers=[];let solution=[];let rowSums=new Array(height).fill(0);let colSums=new Array(width).fill(0);
+ for(let y=0;y<height;y++){
+  numbers[y]=[];
+  solution[y]=[];
+  let mandatoryX=Math.floor(rng.nextFloat()*width);
+  for(let x=0;x<width;x++){
+   let num=Math.floor(rng.nextFloat()*9)+1;
+   numbers[y][x]=num;
+   let corr=rng.nextFloat()<probs[difficulty];
+   if(x===mandatoryX) corr=true;
+   solution[y][x]=corr;
+   if(corr){rowSums[y]+=num;colSums[x]+=num;}
+  }
+ }
+ for(let x=0;x<width;x++){
+  if(colSums[x]===0){
+   let y=Math.floor(rng.nextFloat()*height);
+   if(!solution[y][x]){
+    solution[y][x]=true;
+    rowSums[y]+=numbers[y][x];
+   }
+   colSums[x]+=numbers[y][x];
+  }
+ }
+ return {width,height,numbers,solution,rowSums,colSums};
+}
+function countSolutions(p){
+ const total=p.width*p.height;
+ let solutions=0;
+ function search(pos,rowRem,colRem){
+  if(solutions>1) return;
+  if(pos===total){
+   for(let i=0;i<p.height;i++) if(rowRem[i]!==0) return;
+   for(let i=0;i<p.width;i++) if(colRem[i]!==0) return;
+   solutions++;return;
+  }
+  const y=Math.floor(pos/p.width);
+  const x=pos%p.width;
+  const num=p.numbers[y][x];
+  if(rowRem[y]>=num && colRem[x]>=num){
+   rowRem[y]-=num;colRem[x]-=num;
+   search(pos+1,rowRem,colRem);
+   rowRem[y]+=num;colRem[x]+=num;
+  }
+  search(pos+1,rowRem,colRem);
+ }
+ search(0,p.rowSums.slice(),p.colSums.slice());
+ return solutions;
+}
+function generateUniquePuzzle(width,height,difficulty,seed){
+ const rng=new LCG(seed);
+ let p;let attempts=0;
+ do{p=generatePuzzle(width,height,difficulty,rng);attempts++;}
+ while(countSolutions(p)!==1 && attempts<100);
+ p.seed=seed;p.difficulty=difficulty;return p;
+}
 function startGame(){
 const width=parseInt(document.getElementById('widthInput').value);
 const height=parseInt(document.getElementById('heightInput').value);
@@ -68,33 +126,7 @@ const difficulty=document.getElementById('difficultyInput').value;
 const seedStr=document.getElementById('seedInput').value;
 let seed=0;
 if(seedStr){for(let i=0;i<seedStr.length;i++)seed+=seedStr.charCodeAt(i);}else{seed=Math.floor(Math.random()*1000000);}
-const rng=new LCG(seed);
-const probs={easy:0.3,medium:0.5,hard:0.7};
-let numbers=[];let solution=[];let rowSums=new Array(height).fill(0);let colSums=new Array(width).fill(0);
-for(let y=0;y<height;y++){
- numbers[y]=[];
- solution[y]=[];
- let mandatoryX=Math.floor(rng.nextFloat()*width);
- for(let x=0;x<width;x++){
-  let num=Math.floor(rng.nextFloat()*9)+1;
-  numbers[y][x]=num;
-  let corr=rng.nextFloat()<probs[difficulty];
-  if(x===mandatoryX) corr=true;
-  solution[y][x]=corr;
-  if(corr){rowSums[y]+=num;colSums[x]+=num;}
- }
-}
-for(let x=0;x<width;x++){
- if(colSums[x]===0){
-  let y=Math.floor(rng.nextFloat()*height);
-  if(!solution[y][x]){
-   solution[y][x]=true;
-   rowSums[y]+=numbers[y][x];
-  }
-  colSums[x]+=numbers[y][x];
- }
-}
- puzzle={width,height,numbers,solution,rowSums,colSums,seed,difficulty};
+ puzzle=generateUniquePuzzle(width,height,difficulty,seed);
  renderBoard();
  document.getElementById('start').style.display='none';
  document.getElementById('game').style.display='block';
