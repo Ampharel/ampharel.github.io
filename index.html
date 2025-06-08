@@ -17,6 +17,7 @@ td.mark-wrong{background:#f88;}
 .mini td,.mini th{width:30px;height:30px;font-size:14px;}
 #titleRow{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;}
 #titleRow .description{margin:0;}
+.subtext{font-size:0.8em;color:#555;margin-top:5px;}
 @media (max-width:600px){
  td,th{width:32px;height:32px;font-size:1em;}
  .mini td,.mini th{width:24px;height:24px;font-size:12px;}
@@ -44,6 +45,7 @@ td.mark-wrong{background:#f88;}
 <div id="game">
 <div>Time: <span id="timer">0s</span></div>
 <div id="board"></div>
+<div id="seedInfo" class="subtext"></div>
 </div>
 <div id="result">
 <h2>Puzzle Completed!</h2>
@@ -127,6 +129,7 @@ const seedStr=document.getElementById('seedInput').value;
 let seed=0;
 if(seedStr){for(let i=0;i<seedStr.length;i++)seed+=seedStr.charCodeAt(i);}else{seed=Math.floor(Math.random()*1000000);}
  puzzle=generateUniquePuzzle(width,height,difficulty,seed);
+ document.getElementById('seedInfo').textContent='Seed: '+puzzle.seed;
  renderBoard();
  document.getElementById('start').style.display='none';
  document.getElementById('game').style.display='block';
@@ -225,6 +228,7 @@ document.getElementById('startBtn').addEventListener('click',startGame);
 document.getElementById('playAgain').addEventListener('click',()=>{
  document.getElementById('result').style.display='none';
  document.getElementById('start').style.display='block';
+ document.getElementById('seedInfo').textContent='';
  marks=[];
 });
 </script>
