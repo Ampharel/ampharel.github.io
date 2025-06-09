@@ -1,6 +1,6 @@
 # Sum Puzzle Game
 
-This repository contains a simple HTML/JavaScript puzzle game. The goal is to mark the digits that contribute to the sums shown on the right and bottom edges of the grid.
+This repository contains a simple HTML/JavaScript puzzle game. The goal is to mark the digits that contribute to the sums shown on the left and top edges of the grid.
 
 ## Running
 Open `index.html` in any modern web browser. No build step or server is required.
